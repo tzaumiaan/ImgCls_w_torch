@@ -19,6 +19,7 @@ def test():
   test_loader = load_data(mode='test', data_folder='data')
   images, labels = iter(test_loader).next()
   images, labels = apply_cuda(images), apply_cuda(labels)
+  print(datetime.now(), 'test batch with shape {}'.format(images.shape))
   logits = model(images)
   _, pred = torch.max(logits.data, 1)
   data_size = labels.data.size()[0]
