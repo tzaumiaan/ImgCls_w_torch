@@ -16,7 +16,7 @@ def export(ckpt_path, onnx_model):
 
   # create the imput placeholder for the model
   # note: we have to specify the size of a batch of input images
-  input_placeholder = torch.randn(10, 1, 28, 28)
+  input_placeholder = torch.randn(1, 1, 28, 28)
 
   # export
   torch.onnx.export(model, input_placeholder, onnx_model)
