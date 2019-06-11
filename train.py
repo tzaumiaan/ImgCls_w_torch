@@ -14,7 +14,7 @@ def apply_cuda(obj):
 def apply_var(obj):
   return torch.autograd.Variable(obj)
 
-def train(batch_size=50, lr=0.01, data_folder='data', max_epochs=10, log_freq=100):
+def train(batch_size=50, lr=0.01, data_folder='data', dataset_name='mnist', max_epochs=10, log_freq=100):
   # data source
   train_loader = load_data('train', batch_size, data_folder)
   num_batches = len(train_loader)
