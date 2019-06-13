@@ -6,14 +6,22 @@ def set_parameter_requires_grad(model, freeze_feature):
     for param in model.parameters():
       param.requires_grad = False
 
-def create_model(model_name, n_classes, freeze_feature=True):
+def create_model(model_name, n_classes=10, freeze_feature=True):
   input_size = 224
-  if model_name == "resnet18":
+  if model_name == 'resnet18':
     model = models.resnet18(pretrained=True)
     set_parameter_requires_grad(model, freeze_feature)
     n_feat_in = model.fc.in_features
     model.fc = nn.Linear(n_feat_in, n_classes)
-  elif model_name == "inception_v3":
+  elif model_name == 'mobilenet_v2':  
+    model = models.mobilenet_v2(pretrained=True)
+    set_parameter_requires_grad(model, freeze_feature)
+    n_feat_in = model.last_channel
+    model.classifier = nn.Sequential(
+        nn.Dropout(0.2),
+        nn.Linear(n_feat_in, n_classes)
+    )
+  elif model_name == 'inception_v3':
     # it expects (299,299) sized images and has auxiliary output
     input_size = 299
     model = models.inception_v3(pretrained=True)
@@ -31,5 +39,5 @@ def create_model(model_name, n_classes, freeze_feature=True):
 
 # unit test
 if __name__=='__main__':
-  model, input_size = create_model('resnet', 10)
+  model, input_size = create_model('inception_v3', 10)
   print(model)
