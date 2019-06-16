@@ -1,40 +1,62 @@
 from data_utils import load_data
-from model.lenet import LeNet
 from train import apply_cuda
-
 from datetime import datetime
 import torch
+import numpy as np
 
-ckpt_path = 'saved_model.pth'
+def export_test_data_to_numpy(images, labels, data_folder):
+  import os
+  data_path = os.path.join(data_folder, 'test_data.npz')
+  np.savez('data/test_data.npz', images=images, labels=labels)
 
-def export_test_data_to_numpy(images, labels):
-  import numpy as np
-  np.savez('data/mnist_test_data.npz', images=images, labels=labels)
-
-def test():
+def test(model_name, model_ckpt, dataset_name, data_folder):
   # model definition
-  model = apply_cuda(LeNet())
+  if model_name == 'lenet':
+    from model.lenet import LeNet
+    model = LeNet()
+  else:
+    from model.modelzoo import create_model
+    model, input_size = create_model(model_name, n_classes=120)
+  model = apply_cuda(model)
 
   # load weights
-  ckpt = torch.load(ckpt_path)
+  ckpt = torch.load(model_ckpt)
   model.load_state_dict(ckpt['state_dict'])
   
   # data source
-  test_loader = load_data(mode='test', data_folder='data')
-  images, labels = iter(test_loader).next()
-  export_test_data_to_numpy(images.data.numpy(), labels.data.numpy())
-  images, labels = apply_cuda(images), apply_cuda(labels)
-  print(datetime.now(), 'test batch with shape {}'.format(images.shape))
-  logits = model(images)
-  _, pred = torch.max(logits.data, 1)
-  data_size = labels.data.size()[0]
-  match_count = (pred == labels.data).sum()
-  accuracy = float(match_count)/float(data_size)
-  print(
-      datetime.now(),
-      'testing results: acc={:.4f}'.format(accuracy))
+  batch_size = 200
+  if dataset_name == 'mnist':
+    test_loader = load_data('test', batch_size, data_folder, dataset_name)
+  else:
+    test_loader = load_data('test', batch_size, data_folder, dataset_name, input_size)
+  n_batches_test = len(test_loader)
   
+  print('==== test phase ====')
+  avg_acc = float(0)
+  model.eval()
+  images_export, labels_export = None, None
+  for i, (images, labels) in enumerate(test_loader):
+    if images_export is None or labels_export is None:
+      images_export = images.data.numpy()
+      labels_export = labels.data.numpy()
+    else:
+      images_export = np.concatenate((images_export, images.data.numpy()), axis=0)
+      labels_export = np.concatenate((labels_export, labels.data.numpy()), axis=0)
+    images, labels = apply_cuda(images), apply_cuda(labels)
+    logits = model(images)
+    _, pred = torch.max(logits.data, 1)
+    bs_ = labels.data.size()[0]
+    match_count = (pred == labels.data).sum()
+    accuracy = float(match_count)/float(bs_)
+    print(datetime.now(), 'batch {}/{} with shape={}, accuracy={:.4f}'.format(
+        i+1, n_batches_test, images.shape, accuracy))
+    avg_acc += accuracy/float(n_batches_test)
+  print(datetime.now(), 'test results: acc={:.4f}'.format(avg_acc))
 
 if __name__ == '__main__':
-  test()
+  test(
+      model_name='inception_v3',
+      model_ckpt='inception_v3_sdd_bs50_lr0.01_ep9.pth',
+      dataset_name='sdd',
+      data_folder='data')
 

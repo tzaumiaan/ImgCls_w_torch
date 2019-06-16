@@ -3,8 +3,6 @@ from data_utils import load_data
 from datetime import datetime
 import torch
 
-ckpt_path = 'saved_model.pth'
-
 def apply_cuda(obj):
   if torch.cuda.is_available():
     obj = obj.cuda()
