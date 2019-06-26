@@ -13,6 +13,11 @@ def create_model(model_name, n_classes=10, freeze_feature=True):
     set_parameter_requires_grad(model, freeze_feature)
     n_feat_in = model.fc.in_features
     model.fc = nn.Linear(n_feat_in, n_classes)
+  elif model_name == 'shufflenet_v2_x1_0':
+    model = models.shufflenet_v2_x1_0(pretrained=True)
+    set_parameter_requires_grad(model, freeze_feature)
+    n_feat_in = model.fc.in_features
+    model.fc = nn.Linear(n_feat_in, n_classes)
   elif model_name == 'mobilenet_v2':  
     model = models.mobilenet_v2(pretrained=True)
     set_parameter_requires_grad(model, freeze_feature)
@@ -41,3 +46,6 @@ def create_model(model_name, n_classes=10, freeze_feature=True):
 if __name__=='__main__':
   model, input_size = create_model('inception_v3', 10)
   print(model)
+  model, input_size = create_model('shufflenet_v2_x1_0', 10)
+  print(model)
+  

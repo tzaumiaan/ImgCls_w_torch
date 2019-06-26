@@ -110,12 +110,15 @@ def train(batch_size=50, lr=0.01, data_folder='data', dataset_name='mnist', mode
         'avg_acc': avg_acc}, ckpt_path)
 
 if __name__ == '__main__':
+  #lr, model_name = 0.3, 'shufflenet_v2_x1_0'
+  #lr, model_name = 0.1, 'mobilenet_v2'
+  lr, model_name = 0.01, 'inception_v3'
   train(
       batch_size=50,
-      lr=0.01,
+      lr=lr,
       data_folder='data',
       dataset_name='sdd',
-      model_name='inception_v3',
+      model_name=model_name,
       max_epochs=10,
       log_freq=100)
 
