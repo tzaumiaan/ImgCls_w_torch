@@ -1,9 +1,10 @@
 from openvino.inference_engine import IENetwork, IEPlugin
 import numpy as np
 
-model_xml = 'saved_model.xml'
-model_bin = 'saved_model.bin'
-test_dataset = 'data/mnist_test_data.npz'
+from config import lr, model_name, ckpt_name
+model_xml = ckpt_name+'.xml'
+model_bin = ckpt_name+'.bin'
+test_dataset = 'data/test_data.npz'
 
 def load_model(device, model_xml, model_bin):
   plugin = IEPlugin(device=device, plugin_dirs=None)
@@ -29,6 +30,9 @@ def run_inference(exec_net, input_blob, output_blob, images, labels):
   for i in range(data_counts):
     res = exec_net.infer(inputs={input_blob: images[i]})
     pred = res[output_blob].argmax()
+    if i == 0:
+      print(images[i])
+      print(res, pred, labels[i])
     if pred == labels[i]:
       hit_counts += 1 
   accuracy = float(hit_counts)/float(data_counts)

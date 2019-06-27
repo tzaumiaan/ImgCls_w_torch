@@ -4,10 +4,10 @@ from datetime import datetime
 import torch
 import numpy as np
 
-def export_test_data_to_numpy(images, labels, data_folder):
+def export_test_data_to_numpy(images, labels, data_folder, n_max=1000):
   import os
   data_path = os.path.join(data_folder, 'test_data.npz')
-  np.savez('data/test_data.npz', images=images, labels=labels)
+  np.savez('data/test_data.npz', images=images[:n_max], labels=labels[:n_max])
 
 def test(model_name, model_ckpt, dataset_name, data_folder):
   # model definition
@@ -45,6 +45,9 @@ def test(model_name, model_ckpt, dataset_name, data_folder):
     images, labels = apply_cuda(images), apply_cuda(labels)
     logits = model(images)
     _, pred = torch.max(logits.data, 1)
+    if i == 0:
+      print(images[0])
+      print(logits[0], pred[0], labels[0])
     bs_ = labels.data.size()[0]
     match_count = (pred == labels.data).sum()
     accuracy = float(match_count)/float(bs_)
@@ -52,11 +55,15 @@ def test(model_name, model_ckpt, dataset_name, data_folder):
         i+1, n_batches_test, images.shape, accuracy))
     avg_acc += accuracy/float(n_batches_test)
   print(datetime.now(), 'test results: acc={:.4f}'.format(avg_acc))
+  print(datetime.now(), 'total batch to be exported with shape={}'.format(
+      images_export.shape))
+  export_test_data_to_numpy(images_export, labels_export, data_folder)
 
 if __name__ == '__main__':
+  from config import lr, model_name, ckpt_name
   test(
-      model_name='inception_v3',
-      model_ckpt='inception_v3_sdd_bs50_lr0.01_ep9.pth',
+      model_name=model_name,
+      model_ckpt=ckpt_name+'.pth',
       dataset_name='sdd',
       data_folder='data')
 

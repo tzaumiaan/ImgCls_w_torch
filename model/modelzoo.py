@@ -13,6 +13,34 @@ def create_model(model_name, n_classes=10, freeze_feature=True):
     set_parameter_requires_grad(model, freeze_feature)
     n_feat_in = model.fc.in_features
     model.fc = nn.Linear(n_feat_in, n_classes)
+  elif model_name == 'vgg19':
+    model = models.vgg19(pretrained=True)
+    set_parameter_requires_grad(model, freeze_feature)
+    model.classifier = nn.Sequential(
+        nn.Linear(512 * 7 * 7, 1024),
+        nn.ReLU(True),
+        nn.Dropout(),
+        nn.Linear(1024, n_classes)
+    )
+  elif model_name == 'vgg19_bn':
+    model = models.vgg19_bn(pretrained=True)
+    set_parameter_requires_grad(model, freeze_feature)
+    model.classifier = nn.Sequential(
+        nn.Linear(512 * 7 * 7, 1024),
+        nn.ReLU(True),
+        nn.Dropout(),
+        nn.Linear(1024, n_classes)
+    )
+  elif model_name == 'squeezenet1_1':
+    model = models.squeezenet1_1(pretrained=True)
+    set_parameter_requires_grad(model, freeze_feature)
+    model.num_classes = n_classes
+    model.classifier = nn.Sequential(
+        nn.Dropout(p=0.5),
+        nn.Conv2d(512, n_classes, kernel_size=1),
+        nn.ReLU(inplace=True),
+        nn.AvgPool2d(13, stride=1)
+    )
   elif model_name == 'shufflenet_v2_x1_0':
     model = models.shufflenet_v2_x1_0(pretrained=True)
     set_parameter_requires_grad(model, freeze_feature)
